@@ -40,6 +40,8 @@ partial class MainForm
     private System.Windows.Forms.TextBox pipelineTextBox;
     private System.Windows.Forms.Label pipelineHintLabel;
     private System.Windows.Forms.Button resetPipelineButton;
+    private System.Windows.Forms.Label clockPortLabel;
+    private System.Windows.Forms.TextBox clockPortTextBox;
     private System.Windows.Forms.Label gstPathLabel;
     private System.Windows.Forms.TextBox gstPathTextBox;
     private System.Windows.Forms.Button applyOptionsButton;
@@ -90,6 +92,8 @@ partial class MainForm
         this.applyOptionsButton = new System.Windows.Forms.Button();
         this.gstPathTextBox = new System.Windows.Forms.TextBox();
         this.gstPathLabel = new System.Windows.Forms.Label();
+        this.clockPortTextBox = new System.Windows.Forms.TextBox();
+        this.clockPortLabel = new System.Windows.Forms.Label();
         this.resetPipelineButton = new System.Windows.Forms.Button();
         this.pipelineHintLabel = new System.Windows.Forms.Label();
         this.pipelineTextBox = new System.Windows.Forms.TextBox();
@@ -427,6 +431,8 @@ partial class MainForm
         this.optionsTab.Controls.Add(this.applyOptionsButton);
         this.optionsTab.Controls.Add(this.gstPathTextBox);
         this.optionsTab.Controls.Add(this.gstPathLabel);
+        this.optionsTab.Controls.Add(this.clockPortTextBox);
+        this.optionsTab.Controls.Add(this.clockPortLabel);
         this.optionsTab.Controls.Add(this.resetPipelineButton);
         this.optionsTab.Controls.Add(this.pipelineHintLabel);
         this.optionsTab.Controls.Add(this.pipelineTextBox);
@@ -444,11 +450,11 @@ partial class MainForm
         this.optionsInfoLabel.AutoSize = true;
         this.optionsInfoLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
         this.optionsInfoLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-        this.optionsInfoLabel.Location = new System.Drawing.Point(16, 455);
+        this.optionsInfoLabel.Location = new System.Drawing.Point(16, 504);
         this.optionsInfoLabel.MaximumSize = new System.Drawing.Size(900, 0);
         this.optionsInfoLabel.Name = "optionsInfoLabel";
         this.optionsInfoLabel.Size = new System.Drawing.Size(643, 30);
-        this.optionsInfoLabel.TabIndex = 7;
+        this.optionsInfoLabel.TabIndex = 9;
         this.optionsInfoLabel.Text = "Les variables d'environnement GStreamer sont mises à jour quand vous appliquez. " +
     "Si GStreamer n'est pas initialisé, le nouveau chemin sera utilisé au prochain dé" +
     "marrage de flux.";
@@ -460,10 +466,10 @@ partial class MainForm
         this.applyOptionsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
         this.applyOptionsButton.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
         this.applyOptionsButton.ForeColor = System.Drawing.Color.White;
-        this.applyOptionsButton.Location = new System.Drawing.Point(16, 410);
+        this.applyOptionsButton.Location = new System.Drawing.Point(16, 476);
         this.applyOptionsButton.Name = "applyOptionsButton";
         this.applyOptionsButton.Size = new System.Drawing.Size(124, 32);
-        this.applyOptionsButton.TabIndex = 6;
+        this.applyOptionsButton.TabIndex = 8;
         this.applyOptionsButton.Text = "Appliquer";
         this.applyOptionsButton.UseVisualStyleBackColor = false;
         this.applyOptionsButton.Click += new System.EventHandler(this.ApplyOptionsButton_Click);
@@ -471,21 +477,39 @@ partial class MainForm
         // gstPathTextBox
         // 
         this.gstPathTextBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.gstPathTextBox.Location = new System.Drawing.Point(16, 368);
+        this.gstPathTextBox.Location = new System.Drawing.Point(16, 434);
         this.gstPathTextBox.Name = "gstPathTextBox";
         this.gstPathTextBox.Size = new System.Drawing.Size(600, 25);
-        this.gstPathTextBox.TabIndex = 5;
+        this.gstPathTextBox.TabIndex = 7;
         // 
         // gstPathLabel
         // 
         this.gstPathLabel.AutoSize = true;
         this.gstPathLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.gstPathLabel.Location = new System.Drawing.Point(12, 346);
+        this.gstPathLabel.Location = new System.Drawing.Point(12, 412);
         this.gstPathLabel.Name = "gstPathLabel";
         this.gstPathLabel.Size = new System.Drawing.Size(212, 19);
-        this.gstPathLabel.TabIndex = 4;
+        this.gstPathLabel.TabIndex = 6;
         this.gstPathLabel.Text = "Chemin base GStreamer (bin/lib) :";
         // 
+        // clockPortTextBox
+        // 
+        this.clockPortTextBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.clockPortTextBox.Location = new System.Drawing.Point(16, 368);
+        this.clockPortTextBox.Name = "clockPortTextBox";
+        this.clockPortTextBox.Size = new System.Drawing.Size(120, 25);
+        this.clockPortTextBox.TabIndex = 5;
+        this.clockPortTextBox.Text = "5002";
+        // 
+        // clockPortLabel
+        // 
+        this.clockPortLabel.AutoSize = true;
+        this.clockPortLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.clockPortLabel.Location = new System.Drawing.Point(12, 346);
+        this.clockPortLabel.Name = "clockPortLabel";
+        this.clockPortLabel.Size = new System.Drawing.Size(134, 19);
+        this.clockPortLabel.TabIndex = 4;
+        this.clockPortLabel.Text = "Port horloge (UDP) :";
         // resetPipelineButton
         // 
         this.resetPipelineButton.AutoSize = true;

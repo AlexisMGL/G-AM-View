@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GAMView.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b952ea9c5f4d13e7168e182574680df19d0c3430")]
 [assembly: System.Reflection.AssemblyProductAttribute("GAMView.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GAMView.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,9 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -21,6 +24,7 @@ public partial class MainForm : Form
 
     private const string BannerLogoFileName = "AM_whitenobg.png";
     private const string AppIconFileName = "logo_GAMview.ico";
+    private const int DefaultClockPort = 5002;
 
     private Pipeline? _pipeline;
     private VideoOverlayAdapter? _overlay;
@@ -32,6 +36,10 @@ public partial class MainForm : Form
 
     private string _pipelineTemplate = DefaultPipelineTemplate;
     private string _gstBasePath;
+    private int _clockPort = DefaultClockPort;
+    private CancellationTokenSource? _clockListenerCts;
+    private Task? _clockListenerTask;
+    private bool _clockListenerWarned;
 
     private readonly System.Windows.Forms.Timer _statsTimer;
     private DateTime _lastStatsSampleUtc = DateTime.UtcNow;
@@ -41,6 +49,8 @@ public partial class MainForm : Form
     private double _lastBitrateMbps;
     private double _lastFps;
     private double _lastLatencyMs;
+    private double _lastClockLatencyMs;
+    private long _lastClockSampleTicks;
     private double _lastLossPercent;
     private double _lastPacketAgoSeconds;
 
@@ -54,6 +64,7 @@ public partial class MainForm : Form
         _gstBasePath = Program.DefaultGstBasePath;
         pipelineTextBox.Text = _pipelineTemplate;
         gstPathTextBox.Text = _gstBasePath;
+        clockPortTextBox.Text = _clockPort.ToString();
 
         _statsTimer = new System.Windows.Forms.Timer { Interval = 1000 };
         _statsTimer.Tick += StatsTimerOnTick;
@@ -83,6 +94,18 @@ public partial class MainForm : Form
         _gstBasePath = gstPathTextBox.Text.Trim();
         Program.ConfigureGStreamerEnvironment(_gstBasePath);
 
+        if (!TryReadClockPort(out var clockPort, false))
+        {
+            MessageBox.Show(this, "Port horloge invalide (0-65535).", "Paramètres", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        _clockPort = clockPort;
+        if (_pipeline != null)
+        {
+            StartClockListener(clockPort);
+        }
+
         MessageBox.Show(this, "Options mises à jour. Relancez le flux pour appliquer.", "Options",
             MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
@@ -105,6 +128,13 @@ public partial class MainForm : Form
             MessageBox.Show(this, "Port UDP invalide (0-65535).", "Paramètres", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
+
+        if (!TryReadClockPort(out var clockPort, true))
+        {
+            return;
+        }
+
+        _clockPort = clockPort;
 
         lock (_pipelineLock)
         {
@@ -141,6 +171,7 @@ public partial class MainForm : Form
                 Task.Run(() => WatchBus(bus, _busWatchCts.Token));
 
                 _pipeline.SetState(State.Playing);
+                StartClockListener(clockPort);
 
                 _lastStatsSampleUtc = DateTime.UtcNow;
                 _bytesSinceLast = 0;
@@ -177,6 +208,7 @@ public partial class MainForm : Form
     private void StopStreamInternal()
     {
         _statsTimer.Stop();
+        StopClockListener();
 
         if (_statsPad != null && _statsProbeId != 0)
         {
@@ -226,6 +258,175 @@ public partial class MainForm : Form
     private string BuildPipelineString(int port)
     {
         return _pipelineTemplate.Replace("{port}", port.ToString());
+    }
+
+    private bool TryReadClockPort(out int clockPort, bool showWarning)
+    {
+        if (int.TryParse(clockPortTextBox.Text, out var parsed) && parsed > 0 && parsed <= 65535)
+        {
+            clockPort = parsed;
+            return true;
+        }
+
+        clockPort = _clockPort;
+        if (showWarning)
+        {
+            MessageBox.Show(this, "Port horloge invalide (0-65535).", "Paramètres", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        return false;
+    }
+
+    private void StartClockListener(int clockPort)
+    {
+        if (clockPort <= 0 || clockPort > 65535)
+        {
+            return;
+        }
+
+        StopClockListener();
+
+        _clockListenerCts = new CancellationTokenSource();
+        _clockListenerWarned = false;
+        _clockListenerTask = Task.Run(() => RunClockListener(clockPort, _clockListenerCts.Token));
+    }
+
+    private async Task RunClockListener(int clockPort, CancellationToken token)
+    {
+        try
+        {
+            using var client = CreateClockUdpClient(clockPort);
+            while (!token.IsCancellationRequested)
+            {
+                UdpReceiveResult result;
+                try
+                {
+                    result = await client.ReceiveAsync(token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+
+                var payload = Encoding.UTF8.GetString(result.Buffer).Trim();
+                if (TryParseRemoteTimestamp(payload, out var remoteTimestampNs))
+                {
+                    UpdateLatencyFromClock(remoteTimestampNs);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!_clockListenerWarned)
+            {
+                _clockListenerWarned = true;
+                BeginInvoke(new Action(() =>
+                    MessageBox.Show(this,
+                        $"Impossible d'écouter le port horloge UDP {clockPort}.\n{ex.Message}",
+                        "Port horloge",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning)));
+            }
+        }
+    }
+
+    private static UdpClient CreateClockUdpClient(int clockPort)
+    {
+        // Allow coexistence with external listeners when possible
+        var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
+        {
+            ExclusiveAddressUse = false
+        };
+        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        socket.Bind(new System.Net.IPEndPoint(System.Net.IPAddress.Any, clockPort));
+        return new UdpClient { Client = socket };
+    }
+
+    private static bool TryParseRemoteTimestamp(string payload, out long timestampNs)
+    {
+        // Accept pure integer or a value suffixed with "ns"
+        if (long.TryParse(payload, out timestampNs))
+        {
+            return true;
+        }
+
+        const string suffix = "ns";
+        if (payload.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            var trimmed = payload[..^suffix.Length].Trim();
+            if (long.TryParse(trimmed, out timestampNs))
+            {
+                return true;
+            }
+        }
+
+        timestampNs = 0;
+        return false;
+    }
+
+    private void StopClockListener()
+    {
+        try
+        {
+            _clockListenerCts?.Cancel();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        try
+        {
+            _clockListenerTask?.Wait(200);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        _clockListenerTask = null;
+        _clockListenerCts?.Dispose();
+        _clockListenerCts = null;
+    }
+
+    private void UpdateLatencyFromClock(long remoteTimestampNs)
+    {
+        // Convert to Unix epoch nanoseconds to match sender
+        var nowNs = (DateTime.UtcNow - DateTime.UnixEpoch).Ticks * 100L;
+        var deltaNs = Math.Abs(nowNs - remoteTimestampNs);
+        var latencyMs = deltaNs / 1_000_000.0;
+
+        _lastClockLatencyMs = latencyMs;
+        Interlocked.Exchange(ref _lastClockSampleTicks, DateTime.UtcNow.Ticks);
+        _lastLatencyMs = latencyMs;
+    }
+
+    private bool HasRecentClockSample(DateTime utcNow)
+    {
+        var ticks = Interlocked.Read(ref _lastClockSampleTicks);
+        if (ticks <= 0)
+        {
+            return false;
+        }
+
+        var last = new DateTime(ticks, DateTimeKind.Utc);
+        return (utcNow - last).TotalSeconds < 5;
+    }
+
+    private void ApplyLatencyValue(double? latencyMs, DateTime utcNow)
+    {
+        if (HasRecentClockSample(utcNow))
+        {
+            _lastLatencyMs = _lastClockLatencyMs;
+        }
+        else if (latencyMs.HasValue)
+        {
+            _lastLatencyMs = latencyMs.Value;
+        }
     }
 
     private void WatchBus(Bus bus, CancellationToken token)
@@ -422,10 +623,7 @@ public partial class MainForm : Form
             }
         }
 
-        if (latencyMs.HasValue)
-        {
-            _lastLatencyMs = latencyMs.Value;
-        }
+        ApplyLatencyValue(latencyMs, DateTime.UtcNow);
 
         if (lossPercent.HasValue)
         {
@@ -435,13 +633,19 @@ public partial class MainForm : Form
 
     private void UpdateLatencyFromQos(ulong timestamp, ulong duration)
     {
+        var now = DateTime.UtcNow;
+        if (HasRecentClockSample(now))
+        {
+            return;
+        }
+
         if (duration > 0)
         {
-            _lastLatencyMs = duration / 1_000_000.0;
+            ApplyLatencyValue(duration / 1_000_000.0, now);
         }
         else if (timestamp > 0)
         {
-            _lastLatencyMs = timestamp / 1_000_000.0;
+            ApplyLatencyValue(timestamp / 1_000_000.0, now);
         }
     }
 
@@ -507,6 +711,8 @@ public partial class MainForm : Form
         _lastPacketTicks = 0;
         _lastBitrateMbps = 0;
         _lastFps = 0;
+        _lastClockLatencyMs = 0;
+        _lastClockSampleTicks = 0;
         _lastLatencyMs = 0;
         _lastLossPercent = 0;
         _lastPacketAgoSeconds = 0;
