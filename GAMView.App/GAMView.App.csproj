@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>..\logo_GAMview.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GstSharp" Version="1.18.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="gstreamer-sharp" Condition="Exists('$(NuGetPackageRoot)gstsharp\\1.18.0\\lib\\net45\\gstreamer-sharp.dll')">
+      <HintPath>$(NuGetPackageRoot)gstsharp\1.18.0\lib\net45\gstreamer-sharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="glib-sharp" Condition="Exists('$(NuGetPackageRoot)gstsharp\\1.18.0\\lib\\net45\\glib-sharp.dll')">
+      <HintPath>$(NuGetPackageRoot)gstsharp\1.18.0\lib\net45\glib-sharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="gio-sharp" Condition="Exists('$(NuGetPackageRoot)gstsharp\\1.18.0\\lib\\net45\\gio-sharp.dll')">
+      <HintPath>$(NuGetPackageRoot)gstsharp\1.18.0\lib\net45\gio-sharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\AM_whitenobg.png">
+      <Link>AM_whitenobg.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\logo_GAMview.ico">
+      <Link>logo_GAMview.ico</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\logo_GAMview.png">
+      <Link>logo_GAMview.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

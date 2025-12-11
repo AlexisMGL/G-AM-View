@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "vCgz2K3UbcA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\alexi\\Desktop\\AlexisMGL\\G-AM-View\\GAMView.App\\GAMView.App.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\alexi\\.nuget\\packages\\gstsharp\\1.18.0\\gstsharp.1.18.0.nupkg.sha512"
+  ],
+  "logs": []
+}
