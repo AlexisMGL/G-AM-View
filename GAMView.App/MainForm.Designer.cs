@@ -21,6 +21,16 @@ partial class MainForm
     private System.Windows.Forms.TextBox portTextBox;
     private System.Windows.Forms.Button startButton;
     private System.Windows.Forms.Button stopButton;
+    private System.Windows.Forms.FlowLayoutPanel audioControlFlowPanel;
+    private System.Windows.Forms.Label audioPortLabel;
+    private System.Windows.Forms.TextBox audioPortTextBox;
+    private System.Windows.Forms.Button audioStartButton;
+    private System.Windows.Forms.Button audioStopButton;
+    private System.Windows.Forms.Label audioVolumeLabel;
+    private System.Windows.Forms.TrackBar audioVolumeTrackBar;
+    private System.Windows.Forms.Label audioVolumeValueLabel;
+    private System.Windows.Forms.Label audioStatusLabel;
+    private System.Windows.Forms.Label audioStatusValueLabel;
 
     private System.Windows.Forms.FlowLayoutPanel statsFlowPanel;
     private System.Windows.Forms.Label bitrateLabel;
@@ -40,6 +50,10 @@ partial class MainForm
     private System.Windows.Forms.TextBox pipelineTextBox;
     private System.Windows.Forms.Label pipelineHintLabel;
     private System.Windows.Forms.Button resetPipelineButton;
+    private System.Windows.Forms.Label audioPipelineLabel;
+    private System.Windows.Forms.TextBox audioPipelineTextBox;
+    private System.Windows.Forms.Label audioPipelineHintLabel;
+    private System.Windows.Forms.Button resetAudioPipelineButton;
     private System.Windows.Forms.Label clockPortLabel;
     private System.Windows.Forms.TextBox clockPortTextBox;
     private System.Windows.Forms.Label gstPathLabel;
@@ -71,6 +85,16 @@ partial class MainForm
         this.playbackTab = new System.Windows.Forms.TabPage();
         this.videoPanel = new System.Windows.Forms.Panel();
         this.playbackControlsPanel = new System.Windows.Forms.Panel();
+        this.audioControlFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
+        this.audioPortLabel = new System.Windows.Forms.Label();
+        this.audioPortTextBox = new System.Windows.Forms.TextBox();
+        this.audioStartButton = new System.Windows.Forms.Button();
+        this.audioStopButton = new System.Windows.Forms.Button();
+        this.audioVolumeLabel = new System.Windows.Forms.Label();
+        this.audioVolumeTrackBar = new System.Windows.Forms.TrackBar();
+        this.audioVolumeValueLabel = new System.Windows.Forms.Label();
+        this.audioStatusLabel = new System.Windows.Forms.Label();
+        this.audioStatusValueLabel = new System.Windows.Forms.Label();
         this.statsFlowPanel = new System.Windows.Forms.FlowLayoutPanel();
         this.bitrateLabel = new System.Windows.Forms.Label();
         this.bitrateValueLabel = new System.Windows.Forms.Label();
@@ -94,15 +118,21 @@ partial class MainForm
         this.gstPathLabel = new System.Windows.Forms.Label();
         this.clockPortTextBox = new System.Windows.Forms.TextBox();
         this.clockPortLabel = new System.Windows.Forms.Label();
+        this.resetAudioPipelineButton = new System.Windows.Forms.Button();
         this.resetPipelineButton = new System.Windows.Forms.Button();
+        this.audioPipelineHintLabel = new System.Windows.Forms.Label();
         this.pipelineHintLabel = new System.Windows.Forms.Label();
+        this.audioPipelineTextBox = new System.Windows.Forms.TextBox();
         this.pipelineTextBox = new System.Windows.Forms.TextBox();
+        this.audioPipelineLabel = new System.Windows.Forms.Label();
         this.pipelineLabel = new System.Windows.Forms.Label();
+        ((System.ComponentModel.ISupportInitialize)(this.audioVolumeTrackBar)).BeginInit();
         this.headerPanel.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)(this.headerLogoPictureBox)).BeginInit();
         this.mainTabs.SuspendLayout();
         this.playbackTab.SuspendLayout();
         this.playbackControlsPanel.SuspendLayout();
+        this.audioControlFlowPanel.SuspendLayout();
         this.statsFlowPanel.SuspendLayout();
         this.controlFlowPanel.SuspendLayout();
         this.optionsTab.SuspendLayout();
@@ -213,13 +243,148 @@ partial class MainForm
         // playbackControlsPanel
         // 
         this.playbackControlsPanel.Controls.Add(this.statsFlowPanel);
+        this.playbackControlsPanel.Controls.Add(this.audioControlFlowPanel);
         this.playbackControlsPanel.Controls.Add(this.controlFlowPanel);
         this.playbackControlsPanel.Dock = System.Windows.Forms.DockStyle.Top;
         this.playbackControlsPanel.Location = new System.Drawing.Point(8, 8);
         this.playbackControlsPanel.Name = "playbackControlsPanel";
         this.playbackControlsPanel.Padding = new System.Windows.Forms.Padding(0, 0, 0, 6);
-        this.playbackControlsPanel.Size = new System.Drawing.Size(1160, 104);
+        this.playbackControlsPanel.Size = new System.Drawing.Size(1160, 152);
         this.playbackControlsPanel.TabIndex = 1;
+        // 
+        // audioControlFlowPanel
+        // 
+        this.audioControlFlowPanel.AutoSize = true;
+        this.audioControlFlowPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+        this.audioControlFlowPanel.Controls.Add(this.audioPortLabel);
+        this.audioControlFlowPanel.Controls.Add(this.audioPortTextBox);
+        this.audioControlFlowPanel.Controls.Add(this.audioStartButton);
+        this.audioControlFlowPanel.Controls.Add(this.audioStopButton);
+        this.audioControlFlowPanel.Controls.Add(this.audioVolumeLabel);
+        this.audioControlFlowPanel.Controls.Add(this.audioVolumeTrackBar);
+        this.audioControlFlowPanel.Controls.Add(this.audioVolumeValueLabel);
+        this.audioControlFlowPanel.Controls.Add(this.audioStatusLabel);
+        this.audioControlFlowPanel.Controls.Add(this.audioStatusValueLabel);
+        this.audioControlFlowPanel.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+        this.audioControlFlowPanel.Location = new System.Drawing.Point(0, 50);
+        this.audioControlFlowPanel.Name = "audioControlFlowPanel";
+        this.audioControlFlowPanel.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
+        this.audioControlFlowPanel.Size = new System.Drawing.Size(860, 32);
+        this.audioControlFlowPanel.TabIndex = 1;
+        this.audioControlFlowPanel.WrapContents = false;
+        // 
+        // audioPortLabel
+        // 
+        this.audioPortLabel.AutoSize = true;
+        this.audioPortLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.audioPortLabel.Location = new System.Drawing.Point(0, 2);
+        this.audioPortLabel.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
+        this.audioPortLabel.Name = "audioPortLabel";
+        this.audioPortLabel.Size = new System.Drawing.Size(83, 19);
+        this.audioPortLabel.TabIndex = 0;
+        this.audioPortLabel.Text = "Port audio :";
+        // 
+        // audioPortTextBox
+        // 
+        this.audioPortTextBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.audioPortTextBox.Location = new System.Drawing.Point(89, 2);
+        this.audioPortTextBox.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+        this.audioPortTextBox.Name = "audioPortTextBox";
+        this.audioPortTextBox.Size = new System.Drawing.Size(80, 25);
+        this.audioPortTextBox.TabIndex = 1;
+        this.audioPortTextBox.Text = "5003";
+        // 
+        // audioStartButton
+        // 
+        this.audioStartButton.AutoSize = true;
+        this.audioStartButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(27)))), ((int)(((byte)(94)))), ((int)(((byte)(32)))));
+        this.audioStartButton.FlatAppearance.BorderSize = 0;
+        this.audioStartButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+        this.audioStartButton.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+        this.audioStartButton.ForeColor = System.Drawing.Color.White;
+        this.audioStartButton.Location = new System.Drawing.Point(181, 2);
+        this.audioStartButton.Margin = new System.Windows.Forms.Padding(0, 0, 8, 0);
+        this.audioStartButton.Name = "audioStartButton";
+        this.audioStartButton.Size = new System.Drawing.Size(130, 27);
+        this.audioStartButton.TabIndex = 2;
+        this.audioStartButton.Text = "Démarrer audio";
+        this.audioStartButton.UseVisualStyleBackColor = false;
+        this.audioStartButton.Click += new System.EventHandler(this.AudioStartButton_Click);
+        // 
+        // audioStopButton
+        // 
+        this.audioStopButton.AutoSize = true;
+        this.audioStopButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(183)))), ((int)(((byte)(28)))), ((int)(((byte)(28)))));
+        this.audioStopButton.FlatAppearance.BorderSize = 0;
+        this.audioStopButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+        this.audioStopButton.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+        this.audioStopButton.ForeColor = System.Drawing.Color.White;
+        this.audioStopButton.Location = new System.Drawing.Point(319, 2);
+        this.audioStopButton.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+        this.audioStopButton.Name = "audioStopButton";
+        this.audioStopButton.Size = new System.Drawing.Size(113, 27);
+        this.audioStopButton.TabIndex = 3;
+        this.audioStopButton.Text = "Arrêter audio";
+        this.audioStopButton.UseVisualStyleBackColor = false;
+        this.audioStopButton.Click += new System.EventHandler(this.AudioStopButton_Click);
+        // 
+        // audioVolumeLabel
+        // 
+        this.audioVolumeLabel.AutoSize = true;
+        this.audioVolumeLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.audioVolumeLabel.Location = new System.Drawing.Point(444, 2);
+        this.audioVolumeLabel.Margin = new System.Windows.Forms.Padding(0, 0, 6, 0);
+        this.audioVolumeLabel.Name = "audioVolumeLabel";
+        this.audioVolumeLabel.Size = new System.Drawing.Size(63, 19);
+        this.audioVolumeLabel.TabIndex = 4;
+        this.audioVolumeLabel.Text = "Volume :";
+        // 
+        // audioVolumeTrackBar
+        // 
+        this.audioVolumeTrackBar.AutoSize = false;
+        this.audioVolumeTrackBar.LargeChange = 10;
+        this.audioVolumeTrackBar.Location = new System.Drawing.Point(513, 2);
+        this.audioVolumeTrackBar.Margin = new System.Windows.Forms.Padding(0, 0, 8, 0);
+        this.audioVolumeTrackBar.Maximum = 400;
+        this.audioVolumeTrackBar.Name = "audioVolumeTrackBar";
+        this.audioVolumeTrackBar.Size = new System.Drawing.Size(180, 27);
+        this.audioVolumeTrackBar.TabIndex = 5;
+        this.audioVolumeTrackBar.TickFrequency = 50;
+        this.audioVolumeTrackBar.Scroll += new System.EventHandler(this.AudioVolumeTrackBarOnScroll);
+        // 
+        // audioVolumeValueLabel
+        // 
+        this.audioVolumeValueLabel.AutoSize = true;
+        this.audioVolumeValueLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+        this.audioVolumeValueLabel.Location = new System.Drawing.Point(701, 2);
+        this.audioVolumeValueLabel.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+        this.audioVolumeValueLabel.Name = "audioVolumeValueLabel";
+        this.audioVolumeValueLabel.Size = new System.Drawing.Size(35, 19);
+        this.audioVolumeValueLabel.TabIndex = 6;
+        this.audioVolumeValueLabel.Text = "2.00";
+        // 
+        // audioStatusLabel
+        // 
+        this.audioStatusLabel.AutoSize = true;
+        this.audioStatusLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.audioStatusLabel.Location = new System.Drawing.Point(589, 2);
+        this.audioStatusLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
+        this.audioStatusLabel.Name = "audioStatusLabel";
+        this.audioStatusLabel.Size = new System.Drawing.Size(53, 19);
+        this.audioStatusLabel.TabIndex = 7;
+        this.audioStatusLabel.Text = "Statut :";
+        // 
+        // audioStatusValueLabel
+        // 
+        this.audioStatusValueLabel.AutoSize = true;
+        this.audioStatusValueLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+        this.audioStatusValueLabel.Location = new System.Drawing.Point(646, 2);
+        this.audioStatusValueLabel.Margin = new System.Windows.Forms.Padding(0);
+        this.audioStatusValueLabel.Name = "audioStatusValueLabel";
+        this.audioStatusValueLabel.Size = new System.Drawing.Size(49, 19);
+        this.audioStatusValueLabel.TabIndex = 8;
+        this.audioStatusValueLabel.Text = "Arrêté";
+        // 
         // 
         // statsFlowPanel
         // 
@@ -237,11 +402,11 @@ partial class MainForm
         this.statsFlowPanel.Controls.Add(this.lastPacketLabel);
         this.statsFlowPanel.Controls.Add(this.lastPacketValueLabel);
         this.statsFlowPanel.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
-        this.statsFlowPanel.Location = new System.Drawing.Point(480, 60);
+        this.statsFlowPanel.Location = new System.Drawing.Point(480, 104);
         this.statsFlowPanel.Name = "statsFlowPanel";
         this.statsFlowPanel.Padding = new System.Windows.Forms.Padding(4, 4, 4, 0);
         this.statsFlowPanel.Size = new System.Drawing.Size(674, 34);
-        this.statsFlowPanel.TabIndex = 1;
+        this.statsFlowPanel.TabIndex = 2;
         this.statsFlowPanel.WrapContents = false;
         // 
         // bitrateLabel
@@ -433,9 +598,13 @@ partial class MainForm
         this.optionsTab.Controls.Add(this.gstPathLabel);
         this.optionsTab.Controls.Add(this.clockPortTextBox);
         this.optionsTab.Controls.Add(this.clockPortLabel);
+        this.optionsTab.Controls.Add(this.resetAudioPipelineButton);
         this.optionsTab.Controls.Add(this.resetPipelineButton);
+        this.optionsTab.Controls.Add(this.audioPipelineHintLabel);
         this.optionsTab.Controls.Add(this.pipelineHintLabel);
+        this.optionsTab.Controls.Add(this.audioPipelineTextBox);
         this.optionsTab.Controls.Add(this.pipelineTextBox);
+        this.optionsTab.Controls.Add(this.audioPipelineLabel);
         this.optionsTab.Controls.Add(this.pipelineLabel);
         this.optionsTab.Location = new System.Drawing.Point(4, 24);
         this.optionsTab.Name = "optionsTab";
@@ -450,11 +619,11 @@ partial class MainForm
         this.optionsInfoLabel.AutoSize = true;
         this.optionsInfoLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
         this.optionsInfoLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-        this.optionsInfoLabel.Location = new System.Drawing.Point(16, 504);
+        this.optionsInfoLabel.Location = new System.Drawing.Point(16, 500);
         this.optionsInfoLabel.MaximumSize = new System.Drawing.Size(900, 0);
         this.optionsInfoLabel.Name = "optionsInfoLabel";
         this.optionsInfoLabel.Size = new System.Drawing.Size(643, 30);
-        this.optionsInfoLabel.TabIndex = 9;
+        this.optionsInfoLabel.TabIndex = 13;
         this.optionsInfoLabel.Text = "Les variables d'environnement GStreamer sont mises à jour quand vous appliquez. " +
     "Si GStreamer n'est pas initialisé, le nouveau chemin sera utilisé au prochain dé" +
     "marrage de flux.";
@@ -466,10 +635,10 @@ partial class MainForm
         this.applyOptionsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
         this.applyOptionsButton.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
         this.applyOptionsButton.ForeColor = System.Drawing.Color.White;
-        this.applyOptionsButton.Location = new System.Drawing.Point(16, 476);
+        this.applyOptionsButton.Location = new System.Drawing.Point(16, 468);
         this.applyOptionsButton.Name = "applyOptionsButton";
         this.applyOptionsButton.Size = new System.Drawing.Size(124, 32);
-        this.applyOptionsButton.TabIndex = 8;
+        this.applyOptionsButton.TabIndex = 12;
         this.applyOptionsButton.Text = "Appliquer";
         this.applyOptionsButton.UseVisualStyleBackColor = false;
         this.applyOptionsButton.Click += new System.EventHandler(this.ApplyOptionsButton_Click);
@@ -477,45 +646,45 @@ partial class MainForm
         // gstPathTextBox
         // 
         this.gstPathTextBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.gstPathTextBox.Location = new System.Drawing.Point(16, 434);
+        this.gstPathTextBox.Location = new System.Drawing.Point(16, 430);
         this.gstPathTextBox.Name = "gstPathTextBox";
         this.gstPathTextBox.Size = new System.Drawing.Size(600, 25);
-        this.gstPathTextBox.TabIndex = 7;
+        this.gstPathTextBox.TabIndex = 11;
         // 
         // gstPathLabel
         // 
         this.gstPathLabel.AutoSize = true;
         this.gstPathLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.gstPathLabel.Location = new System.Drawing.Point(12, 412);
+        this.gstPathLabel.Location = new System.Drawing.Point(12, 408);
         this.gstPathLabel.Name = "gstPathLabel";
         this.gstPathLabel.Size = new System.Drawing.Size(212, 19);
-        this.gstPathLabel.TabIndex = 6;
+        this.gstPathLabel.TabIndex = 10;
         this.gstPathLabel.Text = "Chemin base GStreamer (bin/lib) :";
         // 
         // clockPortTextBox
         // 
         this.clockPortTextBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.clockPortTextBox.Location = new System.Drawing.Point(16, 368);
+        this.clockPortTextBox.Location = new System.Drawing.Point(16, 370);
         this.clockPortTextBox.Name = "clockPortTextBox";
         this.clockPortTextBox.Size = new System.Drawing.Size(120, 25);
-        this.clockPortTextBox.TabIndex = 5;
+        this.clockPortTextBox.TabIndex = 9;
         this.clockPortTextBox.Text = "5002";
         // 
         // clockPortLabel
         // 
         this.clockPortLabel.AutoSize = true;
         this.clockPortLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.clockPortLabel.Location = new System.Drawing.Point(12, 346);
+        this.clockPortLabel.Location = new System.Drawing.Point(12, 348);
         this.clockPortLabel.Name = "clockPortLabel";
         this.clockPortLabel.Size = new System.Drawing.Size(134, 19);
-        this.clockPortLabel.TabIndex = 4;
+        this.clockPortLabel.TabIndex = 8;
         this.clockPortLabel.Text = "Port horloge (UDP) :";
         // resetPipelineButton
         // 
         this.resetPipelineButton.AutoSize = true;
         this.resetPipelineButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
         this.resetPipelineButton.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.resetPipelineButton.Location = new System.Drawing.Point(1080, 32);
+        this.resetPipelineButton.Location = new System.Drawing.Point(1058, 16);
         this.resetPipelineButton.Name = "resetPipelineButton";
         this.resetPipelineButton.Size = new System.Drawing.Size(78, 27);
         this.resetPipelineButton.TabIndex = 3;
@@ -523,40 +692,86 @@ partial class MainForm
         this.resetPipelineButton.UseVisualStyleBackColor = true;
         this.resetPipelineButton.Click += new System.EventHandler(this.ResetPipelineButton_Click);
         // 
+        // resetAudioPipelineButton
+        // 
+        this.resetAudioPipelineButton.AutoSize = true;
+        this.resetAudioPipelineButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+        this.resetAudioPipelineButton.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.resetAudioPipelineButton.Location = new System.Drawing.Point(1058, 184);
+        this.resetAudioPipelineButton.Name = "resetAudioPipelineButton";
+        this.resetAudioPipelineButton.Size = new System.Drawing.Size(100, 27);
+        this.resetAudioPipelineButton.TabIndex = 7;
+        this.resetAudioPipelineButton.Text = "Par défaut audio";
+        this.resetAudioPipelineButton.UseVisualStyleBackColor = true;
+        this.resetAudioPipelineButton.Click += new System.EventHandler(this.ResetAudioPipelineButton_Click);
+        // 
         // pipelineHintLabel
         // 
         this.pipelineHintLabel.AutoSize = true;
         this.pipelineHintLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
         this.pipelineHintLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-        this.pipelineHintLabel.Location = new System.Drawing.Point(16, 308);
+        this.pipelineHintLabel.Location = new System.Drawing.Point(16, 144);
         this.pipelineHintLabel.MaximumSize = new System.Drawing.Size(900, 0);
         this.pipelineHintLabel.Name = "pipelineHintLabel";
         this.pipelineHintLabel.Size = new System.Drawing.Size(378, 30);
         this.pipelineHintLabel.TabIndex = 2;
-        this.pipelineHintLabel.Text = "Utilisez {port} pour insérer automatiquement le port saisi dans l'onglet Lecture." +
-    " Le sink doit supporter GstVideoOverlay (ex : d3dvideosink).";
+        this.pipelineHintLabel.Text = "Utilisez {port} pour insérer automatiquement le port vidéo. Le sink doit supporter GstVideoOverlay (ex : d3dvideosink).";
+        // 
+        // audioPipelineHintLabel
+        // 
+        this.audioPipelineHintLabel.AutoSize = true;
+        this.audioPipelineHintLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
+        this.audioPipelineHintLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
+        this.audioPipelineHintLabel.Location = new System.Drawing.Point(16, 312);
+        this.audioPipelineHintLabel.MaximumSize = new System.Drawing.Size(900, 0);
+        this.audioPipelineHintLabel.Name = "audioPipelineHintLabel";
+        this.audioPipelineHintLabel.Size = new System.Drawing.Size(551, 30);
+        this.audioPipelineHintLabel.TabIndex = 6;
+        this.audioPipelineHintLabel.Text = "Utilisez {port} pour insérer automatiquement le port audio. Ajoutez idéalement un élément \"volume\" nommé \"avol\" pour pouvoir ajuster le niveau.";
         // 
         // pipelineTextBox
         // 
         this.pipelineTextBox.AcceptsReturn = true;
         this.pipelineTextBox.AcceptsTab = true;
         this.pipelineTextBox.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.pipelineTextBox.Location = new System.Drawing.Point(16, 64);
+        this.pipelineTextBox.Location = new System.Drawing.Point(16, 44);
         this.pipelineTextBox.Multiline = true;
         this.pipelineTextBox.Name = "pipelineTextBox";
         this.pipelineTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-        this.pipelineTextBox.Size = new System.Drawing.Size(1142, 232);
+        this.pipelineTextBox.Size = new System.Drawing.Size(1142, 96);
         this.pipelineTextBox.TabIndex = 1;
+        // 
+        // audioPipelineTextBox
+        // 
+        this.audioPipelineTextBox.AcceptsReturn = true;
+        this.audioPipelineTextBox.AcceptsTab = true;
+        this.audioPipelineTextBox.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.audioPipelineTextBox.Location = new System.Drawing.Point(16, 212);
+        this.audioPipelineTextBox.Multiline = true;
+        this.audioPipelineTextBox.Name = "audioPipelineTextBox";
+        this.audioPipelineTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+        this.audioPipelineTextBox.Size = new System.Drawing.Size(1142, 96);
+        this.audioPipelineTextBox.TabIndex = 5;
+        // 
+        // audioPipelineLabel
+        // 
+        this.audioPipelineLabel.AutoSize = true;
+        this.audioPipelineLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        this.audioPipelineLabel.Location = new System.Drawing.Point(12, 188);
+        this.audioPipelineLabel.Name = "audioPipelineLabel";
+        this.audioPipelineLabel.Size = new System.Drawing.Size(146, 19);
+        this.audioPipelineLabel.TabIndex = 4;
+        this.audioPipelineLabel.Text = "Pipeline audio (code) :";
         // 
         // pipelineLabel
         // 
         this.pipelineLabel.AutoSize = true;
         this.pipelineLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-        this.pipelineLabel.Location = new System.Drawing.Point(12, 32);
+        this.pipelineLabel.Location = new System.Drawing.Point(12, 20);
         this.pipelineLabel.Name = "pipelineLabel";
-        this.pipelineLabel.Size = new System.Drawing.Size(168, 19);
+        this.pipelineLabel.Size = new System.Drawing.Size(166, 19);
         this.pipelineLabel.TabIndex = 0;
-        this.pipelineLabel.Text = "Pipeline GStreamer (code) :";
+        this.pipelineLabel.Text = "Pipeline vidéo (code) :";
         // 
         // MainForm
         // 
@@ -578,12 +793,15 @@ partial class MainForm
         this.playbackTab.ResumeLayout(false);
         this.playbackControlsPanel.ResumeLayout(false);
         this.playbackControlsPanel.PerformLayout();
+        this.audioControlFlowPanel.ResumeLayout(false);
+        this.audioControlFlowPanel.PerformLayout();
         this.statsFlowPanel.ResumeLayout(false);
         this.statsFlowPanel.PerformLayout();
         this.controlFlowPanel.ResumeLayout(false);
         this.controlFlowPanel.PerformLayout();
         this.optionsTab.ResumeLayout(false);
         this.optionsTab.PerformLayout();
+        ((System.ComponentModel.ISupportInitialize)(this.audioVolumeTrackBar)).EndInit();
         this.ResumeLayout(false);
 
     }

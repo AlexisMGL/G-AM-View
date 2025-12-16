@@ -22,9 +22,16 @@ public partial class MainForm : Form
         "! rtpjitterbuffer name=jb latency=500 drop-on-latency=true " +
         "! rtph265depay name=depay ! h265parse name=parse ! avdec_h265 ! videoconvert ! d3dvideosink name=vsink sync=false";
 
+    private const string DefaultAudioPipelineTemplate =
+        "udpsrc port={port} caps=\"application/x-rtp,media=audio,encoding-name=OPUS,payload=97,clock-rate=48000,channels=1\" " +
+        "! rtpjitterbuffer latency=120 " +
+        "! rtpopusdepay ! opusdec ! audioconvert ! audioresample ! volume name=avol volume=2.0 ! wasapisink sync=false";
+
     private const string BannerLogoFileName = "AM_whitenobg.png";
     private const string AppIconFileName = "logo_GAMview.ico";
     private const int DefaultClockPort = 5002;
+    private const int DefaultAudioPort = 5003;
+    private const double DefaultAudioVolume = 2.0;
 
     private Pipeline? _pipeline;
     private VideoOverlayAdapter? _overlay;
@@ -35,8 +42,11 @@ public partial class MainForm : Form
     private static bool _gstInitialized;
 
     private string _pipelineTemplate = DefaultPipelineTemplate;
+    private string _audioPipelineTemplate = DefaultAudioPipelineTemplate;
     private string _gstBasePath;
     private int _clockPort = DefaultClockPort;
+    private int _audioPort = DefaultAudioPort;
+    private double _audioVolume = DefaultAudioVolume;
     private CancellationTokenSource? _clockListenerCts;
     private Task? _clockListenerTask;
     private bool _clockListenerWarned;
@@ -57,20 +67,31 @@ public partial class MainForm : Form
     private Pad? _statsPad;
     private ulong _statsProbeId;
 
+    private Pipeline? _audioPipeline;
+    private CancellationTokenSource? _audioBusWatchCts;
+    private readonly object _audioPipelineLock = new();
+
     public MainForm()
     {
         InitializeComponent();
 
         _gstBasePath = Program.DefaultGstBasePath;
         pipelineTextBox.Text = _pipelineTemplate;
+        audioPipelineTextBox.Text = _audioPipelineTemplate;
         gstPathTextBox.Text = _gstBasePath;
         clockPortTextBox.Text = _clockPort.ToString();
+        audioPortTextBox.Text = _audioPort.ToString();
+        audioVolumeTrackBar.Value = Math.Max(audioVolumeTrackBar.Minimum,
+            Math.Min(audioVolumeTrackBar.Maximum, (int)Math.Round(_audioVolume * 100)));
+        UpdateAudioVolumeLabel();
 
         _statsTimer = new System.Windows.Forms.Timer { Interval = 1000 };
         _statsTimer.Tick += StatsTimerOnTick;
 
         SetUiState(false);
+        SetAudioUiState(false);
         UpdateStatus("Arrêté");
+        UpdateAudioStatus("Arrêté");
         UpdateStatsLabels();
         LoadBranding();
     }
@@ -85,11 +106,29 @@ public partial class MainForm : Form
         StopStream();
     }
 
+    private void AudioStartButton_Click(object? sender, EventArgs e)
+    {
+        StartAudioStream();
+    }
+
+    private void AudioStopButton_Click(object? sender, EventArgs e)
+    {
+        StopAudioStream();
+    }
+
+    private void AudioVolumeTrackBarOnScroll(object? sender, EventArgs e)
+    {
+        ApplyAudioVolume();
+    }
+
     private void ApplyOptionsButton_Click(object? sender, EventArgs e)
     {
         _pipelineTemplate = string.IsNullOrWhiteSpace(pipelineTextBox.Text)
             ? DefaultPipelineTemplate
             : pipelineTextBox.Text.Trim();
+        _audioPipelineTemplate = string.IsNullOrWhiteSpace(audioPipelineTextBox.Text)
+            ? DefaultAudioPipelineTemplate
+            : audioPipelineTextBox.Text.Trim();
 
         _gstBasePath = gstPathTextBox.Text.Trim();
         Program.ConfigureGStreamerEnvironment(_gstBasePath);
@@ -106,6 +145,8 @@ public partial class MainForm : Form
             StartClockListener(clockPort);
         }
 
+        ApplyAudioVolume();
+
         MessageBox.Show(this, "Options mises à jour. Relancez le flux pour appliquer.", "Options",
             MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
@@ -116,9 +157,16 @@ public partial class MainForm : Form
         pipelineTextBox.Text = DefaultPipelineTemplate;
     }
 
+    private void ResetAudioPipelineButton_Click(object? sender, EventArgs e)
+    {
+        _audioPipelineTemplate = DefaultAudioPipelineTemplate;
+        audioPipelineTextBox.Text = DefaultAudioPipelineTemplate;
+    }
+
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
     {
         StopStream();
+        StopAudioStream();
     }
 
     private void StartStream()
@@ -180,7 +228,7 @@ public partial class MainForm : Form
                 _lastPacketAgoSeconds = 0;
                 _statsTimer.Start();
 
-                UpdateStatus("Lecture en cours");
+                UpdateStatus("Lecture");
                 SetUiState(true);
             }
             catch (Exception ex)
@@ -203,6 +251,84 @@ public partial class MainForm : Form
         UpdateStatus("Arrêté");
         SetUiState(false);
         ResetStats();
+    }
+
+    private void StartAudioStream()
+    {
+        if (!int.TryParse(audioPortTextBox.Text, out var port) || port <= 0 || port > 65535)
+        {
+            MessageBox.Show(this, "Port audio UDP invalide (0-65535).", "Paramètres", MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
+        _audioPort = port;
+
+        lock (_audioPipelineLock)
+        {
+            StopAudioStreamInternal();
+
+            try
+            {
+                Program.ConfigureGStreamerEnvironment(_gstBasePath);
+                EnsureGstInitialized();
+
+                var pipelineString = BuildAudioPipelineString(port);
+                _audioPipeline = (Pipeline)Parse.Launch(pipelineString);
+
+                ApplyAudioVolume();
+
+                var bus = _audioPipeline.Bus;
+                bus.EnableSyncMessageEmission();
+                _audioBusWatchCts = new CancellationTokenSource();
+                Task.Run(() => WatchAudioBus(bus, _audioBusWatchCts.Token));
+
+                _audioPipeline.SetState(State.Playing);
+                UpdateAudioStatus("Lecture");
+                SetAudioUiState(true);
+            }
+            catch (Exception ex)
+            {
+                UpdateAudioStatus("Erreur");
+                SetAudioUiState(false);
+                MessageBox.Show(this, $"Impossible de démarrer le flux audio.\n{ex.Message}", "Erreur GStreamer audio",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                StopAudioStreamInternal();
+            }
+        }
+    }
+
+    private void StopAudioStream()
+    {
+        lock (_audioPipelineLock)
+        {
+            StopAudioStreamInternal();
+        }
+
+        UpdateAudioStatus("Arrêté");
+        SetAudioUiState(false);
+    }
+
+    private void StopAudioStreamInternal()
+    {
+        _audioBusWatchCts?.Cancel();
+        _audioBusWatchCts?.Dispose();
+        _audioBusWatchCts = null;
+
+        if (_audioPipeline != null)
+        {
+            try
+            {
+                _audioPipeline.SetState(State.Null);
+            }
+            catch
+            {
+                // Best effort
+            }
+
+            _audioPipeline.Dispose();
+            _audioPipeline = null;
+        }
     }
 
     private void StopStreamInternal()
@@ -258,6 +384,11 @@ public partial class MainForm : Form
     private string BuildPipelineString(int port)
     {
         return _pipelineTemplate.Replace("{port}", port.ToString());
+    }
+
+    private string BuildAudioPipelineString(int port)
+    {
+        return _audioPipelineTemplate.Replace("{port}", port.ToString());
     }
 
     private bool TryReadClockPort(out int clockPort, bool showWarning)
@@ -482,11 +613,27 @@ public partial class MainForm : Form
         StopStream();
     }
 
+    private void HandleAudioPipelineError(string message, string? debug)
+    {
+        UpdateAudioStatus("Erreur");
+        SetAudioUiState(false);
+        var details = string.IsNullOrWhiteSpace(debug) ? message : $"{message}\n\n{debug}";
+        MessageBox.Show(this, details, "Erreur GStreamer audio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        StopAudioStream();
+    }
+
     private void HandlePipelineEos()
     {
         UpdateStatus("Fin du flux");
         SetUiState(false);
         StopStream();
+    }
+
+    private void HandleAudioPipelineEos()
+    {
+        UpdateAudioStatus("Fin du flux");
+        SetAudioUiState(false);
+        StopAudioStream();
     }
 
     private void BusOnSyncMessage(object? sender, SyncMessageArgs args)
@@ -531,6 +678,46 @@ public partial class MainForm : Form
             _statsPad = pad;
             _statsProbeId = pad.AddProbe(PadProbeType.Buffer, StatsProbe);
             break;
+        }
+    }
+
+    private void WatchAudioBus(Bus bus, CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            Gst.Message? msg;
+            try
+            {
+                msg = bus.TimedPopFiltered(100_000_000, MessageType.Error | MessageType.Eos);
+            }
+            catch
+            {
+                return;
+            }
+
+            if (msg == null)
+            {
+                continue;
+            }
+
+            try
+            {
+                switch (msg.Type)
+                {
+                    case MessageType.Error:
+                        msg.ParseError(out var gex, out var debug);
+                        var message = gex?.Message ?? "Erreur audio inconnue";
+                        BeginInvoke(new Action(() => HandleAudioPipelineError(message, debug)));
+                        return;
+                    case MessageType.Eos:
+                        BeginInvoke(new Action(HandleAudioPipelineEos));
+                        return;
+                }
+            }
+            finally
+            {
+                msg.Dispose();
+            }
         }
     }
 
@@ -704,6 +891,27 @@ public partial class MainForm : Form
         portTextBox.Enabled = !isPlaying;
     }
 
+    private void SetAudioUiState(bool isPlaying)
+    {
+        audioStartButton.Enabled = !isPlaying;
+        audioStopButton.Enabled = isPlaying;
+        audioPortTextBox.Enabled = !isPlaying;
+    }
+
+    private void UpdateAudioStatus(string text)
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(() => UpdateAudioStatus(text)));
+            return;
+        }
+
+        audioStatusValueLabel.Text = text;
+        audioStatusValueLabel.ForeColor = text.StartsWith("Lecture", StringComparison.OrdinalIgnoreCase)
+            ? Color.LimeGreen
+            : Color.Black;
+    }
+
     private void ResetStats()
     {
         _bytesSinceLast = 0;
@@ -717,6 +925,77 @@ public partial class MainForm : Form
         _lastLossPercent = 0;
         _lastPacketAgoSeconds = 0;
         UpdateStatsLabels();
+    }
+
+    private void ApplyAudioVolume()
+    {
+        _audioVolume = audioVolumeTrackBar.Value / 100.0;
+        UpdateAudioVolumeLabel();
+
+        var pipeline = _audioPipeline;
+        if (pipeline == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var volumeElement = pipeline.GetByName("avol") ?? FindVolumeElement(pipeline);
+            if (volumeElement != null)
+            {
+                volumeElement["volume"] = _audioVolume;
+            }
+        }
+        catch
+        {
+            // ignore volume adjustments errors
+        }
+    }
+
+    private void UpdateAudioVolumeLabel()
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(UpdateAudioVolumeLabel));
+            return;
+        }
+
+        audioVolumeValueLabel.Text = $"{_audioVolume:F2}x";
+    }
+
+    private static Element? FindVolumeElement(Bin bin)
+    {
+        using var iterator = bin.IterateElements();
+        var gVal = new GLib.Value();
+
+        try
+        {
+        while (true)
+        {
+            var result = iterator.Next(ref gVal);
+            switch (result)
+            {
+                case IteratorResult.Ok:
+                    if (gVal.Val is Element element &&
+                        element.Factory?.Name.Equals("volume", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        return element;
+                    }
+
+                    break;
+                case IteratorResult.Done:
+                    return null;
+                case IteratorResult.Resync:
+                case IteratorResult.Error:
+                    iterator.Resync();
+                    break;
+            }
+        }
+        }
+        finally
+        {
+            gVal.Dispose();
+        }
     }
 
     private void UpdateStatsLabels()
